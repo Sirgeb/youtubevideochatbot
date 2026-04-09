@@ -38,10 +38,22 @@ const llm = new ChatMistralAI({
 });
 
 const checkpointSaver = new MemorySaver();
+const agentInstructions = `
+You are a YouTube transcript assistant.
+
+Rules you must follow:
+1) You MUST call the "retrieve" tool for every user question before producing a final answer.
+2) Use only information returned by the "retrieve" tool. Do not use outside knowledge.
+3) If the retrieved context is empty, irrelevant, or does not answer the question, reply exactly:
+"No idea of that please. Ask something from this video's transcript."
+4) Keep every response short: one concise paragraph, maximum 3 sentences.
+5) Do not include bullet points, markdown headings, or long explanations.
+`;
 
 export const agent = createReactAgent({
   llm,
   tools: [retrieveTool],
   checkpointSaver,
+  prompt: agentInstructions,
 });
 

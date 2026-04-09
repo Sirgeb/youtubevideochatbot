@@ -90,7 +90,7 @@ function App() {
         body: JSON.stringify({
           query: prompt,
           thread_id: threadIdRef.current,
-          video_id: "T-D1OfcDW1M"
+          video_id: "qxTe5QT5R3c"
         }),
       });
 
@@ -133,7 +133,7 @@ function App() {
       <main className="chat-shell">
         <header className="chat-header">
           <div className="chat-header-content">
-          <h1>AI Chat</h1>
+            <h1>AI Chat</h1>
             <button
               type="button"
               className="new-chat-button"
