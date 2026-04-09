@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Role = "user" | "assistant";
 
@@ -61,10 +61,16 @@ function App() {
 
   // Keep one thread id for this browser session
   const threadIdRef = useRef<number>(Date.now());
+  const messagesContainerRef = useRef<HTMLElement | null>(null);
   const apiBase = useMemo(
     () => (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/+$/, ""),
     []
   );
+
+  useEffect(() => {
+    if (!messagesContainerRef.current) return;
+    messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+  }, [messages, isLoading]);
 
   const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
@@ -145,7 +151,7 @@ function App() {
           </div>
         </header>
 
-        <section className="messages" aria-live="polite">
+        <section className="messages" aria-live="polite" ref={messagesContainerRef}>
           {messages.map((message) => (
             <article
               key={message.id}
