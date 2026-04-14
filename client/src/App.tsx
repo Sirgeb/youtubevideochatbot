@@ -58,6 +58,7 @@ function App() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [activeVideoId, setActiveVideoId] = useState("");
 
   // Keep one thread id for this browser session
   const threadIdRef = useRef<number>(Date.now());
@@ -71,6 +72,34 @@ function App() {
     if (!messagesContainerRef.current) return;
     messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
   }, [messages, isLoading]);
+
+  const extractYoutubeVideoId = (text: string): string | null => {
+    const urlMatch = text.match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=[\w-]+(?:[^\s]*)?|youtube\.com\/shorts\/[\w-]+(?:[^\s]*)?|youtu\.be\/[\w-]+(?:[^\s]*)?)/i);
+    if (!urlMatch?.[0]) return null;
+
+    try {
+      const parsed = new URL(urlMatch[0]);
+      const host = parsed.hostname.replace(/^www\./, "");
+
+      if (host === "youtu.be") {
+        return parsed.pathname.slice(1) || null;
+      }
+
+      if (host === "youtube.com" || host === "m.youtube.com") {
+        if (parsed.pathname === "/watch") {
+          return parsed.searchParams.get("v");
+        }
+
+        if (parsed.pathname.startsWith("/shorts/")) {
+          return parsed.pathname.split("/")[2] || null;
+        }
+      }
+    } catch {
+      return null;
+    }
+
+    return null;
+  };
 
   const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
@@ -87,6 +116,12 @@ function App() {
     setInput("");
     setIsLoading(true);
 
+    const parsedVideoId = extractYoutubeVideoId(prompt);
+    const nextVideoId = (parsedVideoId || activeVideoId || "").trim();
+    if (parsedVideoId) {
+      setActiveVideoId(parsedVideoId);
+    }
+
     try {
       const response = await fetch(`${apiBase}/generate`, {
         method: "POST",
@@ -96,7 +131,7 @@ function App() {
         body: JSON.stringify({
           query: prompt,
           thread_id: threadIdRef.current,
-          video_id: "qxTe5QT5R3c"
+          video_id: nextVideoId || undefined
         }),
       });
 
@@ -131,6 +166,7 @@ function App() {
     setMessages(initialMessages);
     setInput("");
     setIsLoading(false);
+    setActiveVideoId("");
     threadIdRef.current = Date.now();
   };
 

@@ -62,3 +62,19 @@ export const addYTVideoToVectorStore = async (videoData) => {
 
   await vectorStore.addDocuments(chunks)
 }
+
+export const hasVideoInVectorStore = async (videoId) => {
+  if (!videoId) return false;
+
+  const result = await pool.query(
+    `
+      SELECT 1
+      FROM transcripts
+      WHERE metadata->>'video_id' = $1
+      LIMIT 1
+    `,
+    [videoId]
+  );
+
+  return result.rowCount > 0;
+};
